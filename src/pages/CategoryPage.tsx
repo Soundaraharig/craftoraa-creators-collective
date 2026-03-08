@@ -121,12 +121,22 @@ const categoryData: Record<string, {
 
 export { categoryData };
 
+const categoryTitleKeys: Record<string, string> = {
+  resin: "cat.resin",
+  homedecor: "cat.homedecor",
+  textile: "cat.textile",
+  gifts: "cat.gifts",
+};
+
 const CategoryPage = () => {
   const navigate = useNavigate();
   const { category } = useParams();
+  const { t } = useLanguage();
   const data = categoryData[category || "resin"];
 
   if (!data) return null;
+
+  const translatedTitle = t(categoryTitleKeys[category || "resin"] || "");
 
   return (
     <div className="min-h-screen bg-background">
@@ -134,7 +144,8 @@ const CategoryPage = () => {
         <button onClick={() => navigate("/customer")} className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="text-xl font-display font-bold text-foreground">{data.title}</h1>
+        <h1 className="text-xl font-display font-bold text-foreground flex-1">{translatedTitle || data.title}</h1>
+        <LanguageSelector />
       </header>
 
       <div className="px-4 pb-4">
@@ -152,7 +163,7 @@ const CategoryPage = () => {
               <img src={p.image} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
               <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-primary/90 flex items-center gap-0.5">
                 <Palette className="w-3 h-3 text-primary-foreground" />
-                <span className="text-[9px] font-semibold text-primary-foreground font-body">Custom Order</span>
+                <span className="text-[9px] font-semibold text-primary-foreground font-body">{t("cat.customOrder")}</span>
               </span>
               <span className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 flex items-center justify-center">
                 <Heart className="w-4 h-4 text-muted-foreground" />
@@ -177,3 +188,4 @@ const CategoryPage = () => {
 };
 
 export default CategoryPage;
+

@@ -38,6 +38,10 @@ const App = () => (
           <Route path="/seller/support" element={<SellerSupport />} />
           <Route path="/customer" element={<CustomerBrowse />} />
           <Route path="/customer/:category" element={<CategoryPage />} />
+          <Route path="/customer/:category/:productSlug" element={<ProductCustomize />} />
+          <Route path="/order/:category/:productSlug" element={<OrderConfirmation />} />
+          <Route path="/payment/:category/:productSlug" element={<PaymentPage />} />
+          <Route path="/order-summary" element={<OrderSummary />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

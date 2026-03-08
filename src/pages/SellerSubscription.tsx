@@ -89,8 +89,8 @@ const SellerSubscription = () => {
     return true;
   });
 
-  const totalPaid = mockSubscribers.filter((m) => m.paid).length;
-  const totalFree = mockSubscribers.filter((m) => !m.paid).length;
+  const totalPaid = subscribers.filter((m) => m.paid).length;
+  const totalFree = subscribers.filter((m) => !m.paid).length;
 
   return (
     <div className="min-h-screen bg-background">

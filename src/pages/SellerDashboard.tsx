@@ -13,11 +13,19 @@ import { useOrderStore } from "@/store/orderStore";
 
 const sellerFeatures = [
   {
+    icon: ShoppingBag,
+    title: "Custom Orders",
+    desc: "View customer design requests",
+    path: "/seller/custom-orders",
+    gradient: "gradient-warm",
+    showBadge: true,
+  },
+  {
     icon: Package,
     title: "Products",
     desc: "Upload, edit & manage your crafts",
     path: "/seller/products",
-    gradient: "gradient-warm",
+    gradient: "gradient-sage",
   },
   {
     icon: Users,

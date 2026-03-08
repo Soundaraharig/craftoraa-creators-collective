@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, HelpCircle, Mail, FileText, MessageCircle, Send, Star } from "lucide-react";
+import { ArrowLeft, HelpCircle, Mail, FileText, MessageCircle, Send, Star, CheckCircle, Clock } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const faqs = [
   { q: "How do I upload products?", a: "Go to Products → tap the + button → fill in details and upload images." },
@@ -9,6 +10,14 @@ const faqs = [
   { q: "How do I contact a customer?", a: "When a customer messages you about a product, you'll see it in your notifications." },
 ];
 
+interface FeedbackEntry {
+  type: string;
+  message: string;
+  rating: number;
+  date: string;
+  status: "submitted" | "reviewed";
+}
+
 const SellerSupport = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"help" | "feedback">("help");
@@ -16,6 +25,43 @@ const SellerSupport = () => {
   const [feedbackType, setFeedbackType] = useState("suggestion");
   const [rating, setRating] = useState(0);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [feedbackList, setFeedbackList] = useState<FeedbackEntry[]>([
+    { type: "suggestion", message: "It would be great to have a dark mode option for the seller dashboard.", rating: 4, date: "2026-03-05", status: "reviewed" },
+    { type: "feature", message: "Please add bulk upload for products!", rating: 5, date: "2026-03-02", status: "reviewed" },
+  ]);
+
+  const handleSubmitFeedback = () => {
+    if (!feedback.trim()) {
+      toast({ title: "Empty feedback", description: "Please write your feedback before submitting.", variant: "destructive" });
+      return;
+    }
+    if (rating === 0) {
+      toast({ title: "Rating required", description: "Please rate your experience.", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    setTimeout(() => {
+      const newEntry: FeedbackEntry = {
+        type: feedbackType,
+        message: feedback,
+        rating,
+        date: new Date().toISOString().split("T")[0],
+        status: "submitted",
+      };
+      setFeedbackList((prev) => [newEntry, ...prev]);
+      setFeedback("");
+      setRating(0);
+      setFeedbackType("suggestion");
+      setSubmitting(false);
+      toast({ title: "Feedback submitted! 💬", description: "Thank you for helping us improve Craftora." });
+    }, 1000);
+  };
+
+  const typeLabel = (t: string) => {
+    const map: Record<string, string> = { suggestion: "💡 Suggestion", bug: "🐛 Bug", feature: "✨ Feature", complaint: "⚠️ Complaint" };
+    return map[t] || t;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,7 +107,7 @@ const SellerSupport = () => {
           <h3 className="font-display font-semibold text-foreground text-sm pt-4">Contact Us</h3>
           {[
             { icon: MessageCircle, title: "Live Chat", desc: "Talk to our support team" },
-            { icon: Mail, title: "Email Support", desc: "support@craftoraa.com" },
+            { icon: Mail, title: "Email Support", desc: "support@craftora.com" },
             { icon: FileText, title: "Seller Guide", desc: "Step-by-step tutorials" },
           ].map((opt, i) => (
             <button key={i} className="craft-card w-full p-4 flex items-center gap-3 text-left cursor-pointer border-0">
@@ -79,6 +125,7 @@ const SellerSupport = () => {
 
       {activeTab === "feedback" && (
         <section className="px-4 pb-8 space-y-4">
+          {/* Submit Form */}
           <div className="craft-card p-4 space-y-3">
             <h3 className="font-display font-semibold text-foreground text-sm">Rate Your Experience</h3>
             <div className="flex gap-1">
@@ -109,11 +156,44 @@ const SellerSupport = () => {
               rows={4}
               className="w-full bg-muted rounded-lg px-3 py-2.5 text-sm font-body text-foreground placeholder:text-muted-foreground outline-none resize-none"
             />
-            <button className="w-full gradient-warm text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2">
+            <button
+              onClick={handleSubmitFeedback}
+              disabled={submitting}
+              className="w-full gradient-warm text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 disabled:opacity-60"
+            >
               <Send className="w-4 h-4" />
-              Submit Feedback
+              {submitting ? "Submitting..." : "Submit Feedback"}
             </button>
           </div>
+
+          {/* Past Feedback */}
+          {feedbackList.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="font-display font-semibold text-foreground text-sm">Your Feedback History</h3>
+              {feedbackList.map((entry, i) => (
+                <div key={i} className="craft-card p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-body font-semibold text-foreground">{typeLabel(entry.type)}</span>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-body font-semibold px-2 py-0.5 rounded-full ${
+                      entry.status === "reviewed" ? "bg-secondary/15 text-secondary" : "bg-accent/15 text-accent"
+                    }`}>
+                      {entry.status === "reviewed" ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                      {entry.status === "reviewed" ? "Reviewed" : "Submitted"}
+                    </span>
+                  </div>
+                  <p className="text-sm font-body text-muted-foreground">{entry.message}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className={`w-3 h-3 ${s <= entry.rating ? "text-accent fill-accent" : "text-muted-foreground"}`} />
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-body">{new Date(entry.date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
     </div>

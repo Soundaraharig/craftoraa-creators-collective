@@ -66,6 +66,7 @@ const sellerFeatures = [
 
 const SellerDashboard = () => {
   const navigate = useNavigate();
+  const pendingCount = useOrderStore((s) => s.orders.filter((o) => o.status === "pending").length);
 
   return (
     <div className="min-h-screen bg-background">

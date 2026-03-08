@@ -68,7 +68,7 @@ const SellerSubscription = () => {
 
   const isFormValid = formData.name && formData.craftType && formData.businessName && formData.contact && formData.location;
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!isFormValid) {
       toast({ title: "Missing fields", description: "Please fill in all required fields.", variant: "destructive" });
       return;

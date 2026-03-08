@@ -83,7 +83,7 @@ const SellerSubscription = () => {
     }, 1500);
   };
 
-  const filteredMembers = mockSubscribers.filter((m) => {
+  const filteredMembers = subscribers.filter((m) => {
     if (memberFilter === "paid") return m.paid;
     if (memberFilter === "free") return !m.paid;
     return true;

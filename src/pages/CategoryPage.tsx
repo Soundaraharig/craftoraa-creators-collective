@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Star, Heart } from "lucide-react";
+import { ArrowLeft, Star, Heart, Palette } from "lucide-react";
 import categoryResin from "@/assets/category-resin.jpg";
 import categoryHomeDecor from "@/assets/category-homedecor.jpg";
 import categoryTextile from "@/assets/category-textile.jpg";

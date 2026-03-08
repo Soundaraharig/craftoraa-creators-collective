@@ -30,11 +30,12 @@ const designStylesByCategory: Record<string, { name: string; desc: string }[]> =
     { name: "Artistic", desc: "Abstract aesthetic textile art" },
   ],
   gifts: [
-    { name: "Aesthetic", desc: "Soft tones with elegant finish" },
-    { name: "Festive", desc: "Bright celebration-ready look" },
+    { name: "Aesthetic", desc: "Soft pastel tones with elegant finish" },
+    { name: "Floral", desc: "Flower patterns & botanical vibes" },
+    { name: "Cute", desc: "Adorable kawaii & fun designs" },
     { name: "Minimal", desc: "Clean lines, subtle beauty" },
     { name: "Vintage", desc: "Classic retro-inspired look" },
-    { name: "Personalized", desc: "Custom name & photo designs" },
+    { name: "Celebration", desc: "Bright festive party-ready style" },
   ],
 };
 

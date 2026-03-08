@@ -34,10 +34,7 @@ const SellerSupport = () => {
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [feedbackList, setFeedbackList] = useState<FeedbackEntry[]>([
-    { type: "suggestion", message: "It would be great to have a dark mode option for the seller dashboard.", rating: 4, date: "2026-03-05", status: "reviewed", name: "Priya Sharma", businessName: "Priya Crafts" },
-    { type: "feature", message: "Please add bulk upload for products!", rating: 5, date: "2026-03-02", status: "reviewed", name: "Meera Devi", businessName: "ArtByMeera" },
-  ]);
+  const [feedbackList, setFeedbackList] = useState<FeedbackEntry[]>([]);
 
   const handleSubmitFeedback = () => {
     if (!sellerName.trim()) {

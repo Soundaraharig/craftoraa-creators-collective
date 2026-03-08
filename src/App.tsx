@@ -41,6 +41,7 @@ const App = () => (
           <Route path="/seller/support" element={<SellerSupport />} />
           <Route path="/seller/custom-orders" element={<SellerCustomOrders />} />
           <Route path="/seller/gift-products" element={<SellerGiftProducts />} />
+          <Route path="/seller/notifications" element={<SellerNotifications />} />
           <Route path="/customer" element={<CustomerBrowse />} />
           <Route path="/customer/:category" element={<CategoryPage />} />
           <Route path="/customer/:category/:productSlug" element={<ProductCustomize />} />

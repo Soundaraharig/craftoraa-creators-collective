@@ -142,10 +142,10 @@ const PaymentPage = () => {
       <div className="px-4">
         <Button
           onClick={handlePay}
-          disabled={!canPay}
+          disabled={!canPay || processing}
           className="w-full gradient-warm text-primary-foreground font-body"
         >
-          {selectedMethod === "cod" ? "Place Order" : `Pay ₹${state.product.price}`}
+          {processing ? "Processing..." : selectedMethod === "cod" ? "Place Order" : `Pay ₹${state.product.price}`}
         </Button>
       </div>
     </div>

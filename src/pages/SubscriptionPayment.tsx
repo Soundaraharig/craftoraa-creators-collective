@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Check, Smartphone, CreditCard, Building2 } from "lucide-react";
+import { ArrowLeft, Check, Smartphone, CreditCard, Building2, QrCode } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import craftoraQr from "@/assets/craftora-upi-qr.jpg";
+
+const CRAFTORA_UPI_ID = "nsrimithra445@okicici";
 
 const upiApps = [
   { id: "gpay", name: "Google Pay", color: "from-blue-500 to-green-500", icon: "G" },
@@ -133,6 +136,23 @@ const SubscriptionPayment = () => {
               <p className="text-xs font-body font-semibold text-foreground">{app.name}</p>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* QR Code Scanner */}
+      <section className="px-4 mb-5">
+        <div className="craft-card p-4 text-center space-y-3">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <QrCode className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-display font-semibold text-foreground">Scan QR to Pay</h3>
+          </div>
+          <div className="bg-white rounded-xl p-3 inline-block mx-auto">
+            <img src={craftoraQr} alt="Craftora UPI QR Code" className="w-48 h-48 object-contain mx-auto" />
+          </div>
+          <p className="text-xs font-body text-muted-foreground">
+            UPI ID: <span className="font-semibold text-foreground select-all">{CRAFTORA_UPI_ID}</span>
+          </p>
+          <p className="text-[10px] text-muted-foreground font-body">Scan with any UPI app to pay</p>
         </div>
       </section>
 

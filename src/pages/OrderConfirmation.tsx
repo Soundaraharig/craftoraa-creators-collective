@@ -36,6 +36,23 @@ const OrderConfirmation = () => {
   const isValid = form.name && form.phone && form.address && form.deliveryDate;
 
   const handleProceed = () => {
+    // Save custom order for seller dashboard
+    addOrder({
+      id: `CRA-${Date.now().toString(36).toUpperCase()}`,
+      customerName: form.name,
+      phone: form.phone,
+      address: form.address,
+      deliveryDate: form.deliveryDate,
+      productName: state.product.name,
+      productType: "Custom",
+      seller: state.product.seller,
+      price: state.product.price,
+      wishDescription: state.wishDescription,
+      designStyle: state.designStyle,
+      referenceImage: state.referenceImage ?? null,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    });
     navigate(`/payment/${category}/${productSlug}`, {
       state: { ...state, customerDetails: form },
     });

@@ -74,21 +74,29 @@ const SellerSubscription = () => {
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      const initials = formData.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-      const newSubscriber: Subscriber = {
+    try {
+      await registerSeller({
         name: formData.name,
-        craft: formData.craftType,
+        businessName: formData.businessName,
+        craftType: formData.craftType,
+        contact: formData.contact,
+        location: formData.location,
+        socialMedia: formData.socialMedia,
         plan: currentPlan,
         paid: currentPlan !== "Starter",
-        joinedDate: new Date().toISOString().split("T")[0],
-        avatar: initials,
-      };
-      setSubscribers((prev) => [newSubscriber, ...prev]);
-      setSubmitting(false);
+      });
+      const initials = formData.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+      setSubscribers((prev) => [{
+        name: formData.name, craft: formData.craftType, plan: currentPlan,
+        paid: currentPlan !== "Starter", joinedDate: new Date().toISOString().split("T")[0], avatar: initials,
+      }, ...prev]);
       setRegistered(true);
       toast({ title: "Welcome to Craftora! 🎉", description: "You've successfully joined the community." });
-    }, 1200);
+    } catch {
+      toast({ title: "Registration failed", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleUpgrade = (planName: string) => {

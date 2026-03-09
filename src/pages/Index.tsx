@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Store, ShoppingBag } from "lucide-react";
+import { Store, ShoppingBag, Crown, MessageSquare, Lightbulb } from "lucide-react";
 import heroCrafts from "@/assets/hero-crafts.jpg";
 import craftoraLogo from "@/assets/craftora-logo.png";
 import LanguageSelector from "@/components/LanguageSelector";

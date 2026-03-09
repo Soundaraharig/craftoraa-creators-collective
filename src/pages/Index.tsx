@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Store, ShoppingBag } from "lucide-react";
+import { Store, ShoppingBag, Crown, MessageSquare, Lightbulb } from "lucide-react";
 import heroCrafts from "@/assets/hero-crafts.jpg";
 import craftoraLogo from "@/assets/craftora-logo.png";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -65,6 +65,28 @@ const Index = () => {
               <h4 className="font-display font-semibold text-foreground text-base">{t("home.customer")}</h4>
               <p className="text-xs text-muted-foreground mt-1 font-body">{t("home.customerDesc")}</p>
             </div>
+          </button>
+        </div>
+
+        {/* Quick Access Links */}
+        <div className="mt-6 grid grid-cols-3 gap-3">
+          <button onClick={() => navigate("/seller/subscription")} className="craft-card p-4 flex flex-col items-center gap-2 text-center group cursor-pointer border-0">
+            <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Crown className="w-5 h-5 text-primary" />
+            </div>
+            <span className="text-xs font-body font-semibold text-foreground">Subscription</span>
+          </button>
+          <button onClick={() => navigate("/seller/support")} className="craft-card p-4 flex flex-col items-center gap-2 text-center group cursor-pointer border-0">
+            <div className="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <MessageSquare className="w-5 h-5 text-secondary" />
+            </div>
+            <span className="text-xs font-body font-semibold text-foreground">Feedback</span>
+          </button>
+          <button onClick={() => navigate("/seller/ideas")} className="craft-card p-4 flex flex-col items-center gap-2 text-center group cursor-pointer border-0">
+            <div className="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Lightbulb className="w-5 h-5 text-accent" />
+            </div>
+            <span className="text-xs font-body font-semibold text-foreground">Suggestions</span>
           </button>
         </div>
       </section>

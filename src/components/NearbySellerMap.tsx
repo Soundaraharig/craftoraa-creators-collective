@@ -1,45 +1,41 @@
-import { useEffect, useRef } from "react";
-import { MapPin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { MapPin, Loader2 } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Seller {
-  name: string;
-  location: string;
-  lat: number;
-  lng: number;
-}
-
-// Known seller coordinates mapped by name
-const sellerCoordinates: Record<string, { lat: number; lng: number }> = {
-  "Priya Crafts Studio": { lat: 13.0524, lng: 80.2508 },
-  "CraftNest Workshop": { lat: 13.0674, lng: 80.2376 },
-  "Priya Crafts": { lat: 13.0524, lng: 80.2508 },
-  "CraftNest": { lat: 13.0674, lng: 80.2376 },
-  "ArtByMeera": { lat: 13.0412, lng: 80.2338 },
-  "KeepSakeArt": { lat: 13.0827, lng: 80.2707 },
-  "StarResin": { lat: 13.0358, lng: 80.2468 },
-  "MittiCraft Pottery": { lat: 11.9416, lng: 79.8083 },
-  "MittiCraft": { lat: 13.0285, lng: 80.2522 },
-  "WoodCraft Studio": { lat: 12.6269, lng: 80.1927 },
-  "WoodCraft": { lat: 12.6269, lng: 80.1927 },
-  "GreenCraft Hub": { lat: 13.0478, lng: 80.2190 },
-  "EarthTones": { lat: 13.0500, lng: 80.2121 },
-  "LightCraft": { lat: 13.0611, lng: 80.2209 },
-  "KnottyVibes": { lat: 13.0342, lng: 80.2604 },
-  "Kanchipuram Weavers Co-op": { lat: 12.8342, lng: 79.7036 },
-  "LoomArt Handlooms": { lat: 11.6643, lng: 78.1460 },
-  "ThreadWorks Artisans": { lat: 9.9252, lng: 78.1198 },
-  "KhadiCraft Collective": { lat: 11.0168, lng: 76.9558 },
-  "WrapJoy Studio": { lat: 13.0560, lng: 80.2580 },
-  "PaperLove Crafts": { lat: 13.0430, lng: 80.2330 },
-  "PrintHouse Custom": { lat: 13.0600, lng: 80.2400 },
-  "TinyGifts Studio": { lat: 13.0480, lng: 80.2550 },
-  "CardCraft Workshop": { lat: 13.0700, lng: 80.2200 },
-  "WeaveArt": { lat: 13.0450, lng: 80.2350 },
+// Approximate coordinates for known Tamil Nadu cities
+const cityCoordinates: Record<string, { lat: number; lng: number }> = {
+  chennai: { lat: 13.0827, lng: 80.2707 },
+  coimbatore: { lat: 11.0168, lng: 76.9558 },
+  madurai: { lat: 9.9252, lng: 78.1198 },
+  salem: { lat: 11.6643, lng: 78.1460 },
+  trichy: { lat: 10.7905, lng: 78.7047 },
+  tiruchirappalli: { lat: 10.7905, lng: 78.7047 },
+  bangalore: { lat: 12.9716, lng: 77.5946 },
+  bengaluru: { lat: 12.9716, lng: 77.5946 },
+  pondicherry: { lat: 11.9416, lng: 79.8083 },
+  kanchipuram: { lat: 12.8342, lng: 79.7036 },
+  thanjavur: { lat: 10.7870, lng: 79.1378 },
+  erode: { lat: 11.3410, lng: 77.7172 },
+  tirunelveli: { lat: 8.7139, lng: 77.7567 },
+  vellore: { lat: 12.9165, lng: 79.1325 },
 };
 
-// Default center: Chennai
+function getCoordinatesFromLocation(location: string): { lat: number; lng: number } | null {
+  const lower = location.toLowerCase();
+  for (const [city, coords] of Object.entries(cityCoordinates)) {
+    if (lower.includes(city)) {
+      // Add small random offset so markers don't overlap
+      return {
+        lat: coords.lat + (Math.random() - 0.5) * 0.02,
+        lng: coords.lng + (Math.random() - 0.5) * 0.02,
+      };
+    }
+  }
+  return null;
+}
+
 const DEFAULT_CENTER = { lat: 13.0827, lng: 80.2707 };
 
 interface NearbySellerMapProps {
@@ -47,21 +43,62 @@ interface NearbySellerMapProps {
   selectedSeller?: string;
 }
 
+interface SellerPin {
+  name: string;
+  businessName: string;
+  location: string;
+  plan: string;
+  paid: boolean;
+  lat: number;
+  lng: number;
+}
+
 const NearbySellerMap = ({ category, selectedSeller }: NearbySellerMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const [sellers, setSellers] = useState<SellerPin[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get sellers for the category from the known coordinates
-  const sellers: Seller[] = Object.entries(sellerCoordinates)
-    .map(([name, coords]) => ({
-      name,
-      location: "",
-      lat: coords.lat,
-      lng: coords.lng,
-    }));
-
+  // Fetch registered sellers from database
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    const fetchSellers = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("sellers")
+        .select("name, business_name, location, plan, paid, craft_type");
+
+      if (!error && data) {
+        const pins: SellerPin[] = [];
+        data.forEach((s) => {
+          const coords = getCoordinatesFromLocation(s.location);
+          if (coords) {
+            pins.push({
+              name: s.name,
+              businessName: s.business_name,
+              location: s.location,
+              plan: s.plan,
+              paid: s.paid,
+              lat: coords.lat,
+              lng: coords.lng,
+            });
+          }
+        });
+        setSellers(pins);
+      }
+      setLoading(false);
+    };
+    fetchSellers();
+  }, []);
+
+  // Render map when sellers are loaded
+  useEffect(() => {
+    if (!mapRef.current || loading || sellers.length === 0) return;
+
+    // Clean up previous map
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
 
     const map = L.map(mapRef.current).setView(
       [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng],
@@ -73,16 +110,22 @@ const NearbySellerMap = ({ category, selectedSeller }: NearbySellerMapProps) => 
       maxZoom: 18,
     }).addTo(map);
 
-    // Custom icon
-    const defaultIcon = L.divIcon({
-      html: `<div style="background:#f97316;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>`,
+    const freeIcon = L.divIcon({
+      html: `<div style="background:#f97316;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>`,
       className: "",
-      iconSize: [28, 28],
-      iconAnchor: [14, 28],
+      iconSize: [26, 26],
+      iconAnchor: [13, 26],
+    });
+
+    const paidIcon = L.divIcon({
+      html: `<div style="background:#16a34a;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>`,
+      className: "",
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
     });
 
     const selectedIcon = L.divIcon({
-      html: `<div style="background:#16a34a;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>`,
+      html: `<div style="background:#7c3aed;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>`,
       className: "",
       iconSize: [34, 34],
       iconAnchor: [17, 34],
@@ -91,14 +134,30 @@ const NearbySellerMap = ({ category, selectedSeller }: NearbySellerMapProps) => 
     const bounds: [number, number][] = [];
 
     sellers.forEach((seller) => {
-      const isSelected = selectedSeller === seller.name;
+      const isSelected =
+        selectedSeller === seller.name ||
+        selectedSeller === seller.businessName;
+      const icon = isSelected
+        ? selectedIcon
+        : seller.paid
+        ? paidIcon
+        : freeIcon;
+
       const marker = L.marker([seller.lat, seller.lng], {
-        icon: isSelected ? selectedIcon : defaultIcon,
+        icon,
         zIndexOffset: isSelected ? 1000 : 0,
       }).addTo(map);
 
+      const badge = seller.paid
+        ? `<span style="background:#16a34a;color:white;padding:1px 6px;border-radius:8px;font-size:10px">${seller.plan}</span>`
+        : `<span style="background:#9ca3af;color:white;padding:1px 6px;border-radius:8px;font-size:10px">Free</span>`;
+
       marker.bindPopup(
-        `<div style="font-size:13px;font-weight:600">${seller.name}</div>`,
+        `<div style="min-width:120px">
+          <div style="font-size:13px;font-weight:600">${seller.businessName}</div>
+          <div style="font-size:11px;color:#666;margin:2px 0">${seller.name} · ${seller.location}</div>
+          ${badge}
+        </div>`,
         { closeButton: false }
       );
 
@@ -116,15 +175,30 @@ const NearbySellerMap = ({ category, selectedSeller }: NearbySellerMapProps) => 
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [selectedSeller]);
+  }, [sellers, loading, selectedSeller]);
 
   return (
     <div className="craft-card overflow-hidden">
       <div className="p-3 flex items-center gap-2 border-b border-border">
         <MapPin className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-display font-semibold text-foreground">Nearby Sellers</h3>
+        <h3 className="text-sm font-display font-semibold text-foreground">Registered Sellers Nearby</h3>
       </div>
-      <div ref={mapRef} className="w-full h-48" style={{ zIndex: 0 }} />
+      {loading ? (
+        <div className="w-full h-48 flex items-center justify-center bg-muted">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : sellers.length === 0 ? (
+        <div className="w-full h-48 flex items-center justify-center bg-muted">
+          <p className="text-xs text-muted-foreground">No registered sellers found</p>
+        </div>
+      ) : (
+        <div ref={mapRef} className="w-full h-48" style={{ zIndex: 0 }} />
+      )}
+      <div className="px-3 py-2 flex items-center gap-3 text-[10px] text-muted-foreground border-t border-border">
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-600 inline-block" /> Paid</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" /> Free</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-violet-600 inline-block" /> Selected</span>
+      </div>
     </div>
   );
 };

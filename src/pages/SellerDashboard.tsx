@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, Package, Users, Bot, Lightbulb, Crown, HeadphonesIcon, ShoppingBag, Gift, Bell,
+  ArrowLeft, Package, Users, Bot, Lightbulb, Crown, HeadphonesIcon, ShoppingBag, Gift, Bell, Palette,
 } from "lucide-react";
 import { useOrderStore } from "@/store/orderStore";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -19,6 +19,7 @@ const SellerDashboard = () => {
     { icon: Users, title: t("seller.connections"), desc: t("seller.connectionsDesc"), path: "/seller/connections", gradient: "gradient-sage" },
     { icon: Bot, title: t("seller.problemSolver"), desc: t("seller.problemSolverDesc"), path: "/seller/chatbot", gradient: "gradient-warm" },
     { icon: Lightbulb, title: t("seller.businessIdeas"), desc: t("seller.businessIdeasDesc"), path: "/seller/ideas", gradient: "gradient-sage" },
+    { icon: Palette, title: "My Storefront Template", desc: "Select and view your storefront templates", path: "/seller/profile", gradient: "gradient-warm" },
     { icon: Crown, title: t("seller.subscription"), desc: t("seller.subscriptionDesc"), path: "/seller/subscription", gradient: "gradient-warm" },
     { icon: HeadphonesIcon, title: t("seller.support"), desc: t("seller.supportDesc"), path: "/seller/support", gradient: "gradient-sage" },
   ];

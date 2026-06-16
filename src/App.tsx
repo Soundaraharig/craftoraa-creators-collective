@@ -14,6 +14,7 @@ import SellerChatbot from "./pages/SellerChatbot";
 import SellerIdeas from "./pages/SellerIdeas";
 import SellerSubscription from "./pages/SellerSubscription";
 import SellerSupport from "./pages/SellerSupport";
+import SellerProfile from "./pages/SellerProfile";
 import CustomerBrowse from "./pages/CustomerBrowse";
 import CategoryPage from "./pages/CategoryPage";
 import ProductCustomize from "./pages/ProductCustomize";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/seller/subscription" element={<AuthGuard><SellerSubscription /></AuthGuard>} />
             <Route path="/seller/subscription/payment" element={<AuthGuard><SubscriptionPayment /></AuthGuard>} />
             <Route path="/seller/support" element={<AuthGuard><SellerSupport /></AuthGuard>} />
+            <Route path="/seller/profile" element={<AuthGuard><SellerProfile /></AuthGuard>} />
             <Route path="/seller/custom-orders" element={<AuthGuard><SellerCustomOrders /></AuthGuard>} />
             <Route path="/seller/gift-products" element={<AuthGuard><SellerGiftProducts /></AuthGuard>} />
             <Route path="/seller/notifications" element={<AuthGuard><SellerNotifications /></AuthGuard>} />

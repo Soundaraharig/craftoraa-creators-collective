@@ -88,10 +88,10 @@ const SubscriptionPayment = () => {
             </p>
           </div>
           <button
-            onClick={() => navigate("/seller/subscription")}
+            onClick={() => navigate(localStorage.getItem("craftora_registered_seller_id") ? "/seller/profile" : "/seller/subscription")}
             className="w-full gradient-warm text-primary-foreground font-body font-semibold text-sm py-3 rounded-lg"
           >
-            Back to Subscription
+            {localStorage.getItem("craftora_registered_seller_id") ? "Go to Seller Profile" : "Back to Subscription"}
           </button>
         </div>
       </div>

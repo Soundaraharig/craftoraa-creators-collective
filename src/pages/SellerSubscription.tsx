@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Crown, User, Upload, Users, CreditCard, Clock } from "lucide-react";
+import { ArrowLeft, Check, Crown, User, Upload, Users, CreditCard, Clock, Lock, ShieldAlert } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { registerSeller, fetchSellers } from "@/lib/orderService";
+import { supabase } from "@/integrations/supabase/client";
 
 const plans = [
   {
@@ -41,9 +42,21 @@ const SellerSubscription = () => {
   const [currentPlan, setCurrentPlan] = useState("Starter");
   const [memberFilter, setMemberFilter] = useState<"all" | "paid" | "free">("all");
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [passcodeInput, setPasscodeInput] = useState("");
+  const [passcodeError, setPasscodeError] = useState(false);
 
-  // Load sellers from database
+  // Load sellers & check auth/admin from database
   useEffect(() => {
+    const savedSellerId = localStorage.getItem("craftora_registered_seller_id");
+    
+    // Check if logged in user is admin
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email?.toLowerCase().includes("admin") || user?.user_metadata?.role === "admin") {
+        setIsAdmin(true);
+      }
+    });
+
     fetchSellers().then((sellers) => {
       setSubscribers(
         sellers.map((s: any) => ({
@@ -55,6 +68,22 @@ const SellerSubscription = () => {
           avatar: s.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2),
         }))
       );
+
+      if (savedSellerId) {
+        const currentSeller = sellers.find((s: any) => s.id === savedSellerId);
+        if (currentSeller) {
+          setRegistered(true);
+          setCurrentPlan(currentSeller.plan || "Starter");
+          setFormData({
+            name: currentSeller.name || "",
+            craftType: currentSeller.craft_type || "",
+            businessName: currentSeller.business_name || "",
+            contact: currentSeller.contact || "",
+            location: currentSeller.location || "",
+            socialMedia: currentSeller.social_media || "",
+          });
+        }
+      }
     }).catch(() => {});
   }, []);
 
@@ -75,7 +104,7 @@ const SellerSubscription = () => {
     }
     setSubmitting(true);
     try {
-      await registerSeller({
+      const seller = await registerSeller({
         name: formData.name,
         businessName: formData.businessName,
         craftType: formData.craftType,
@@ -85,6 +114,9 @@ const SellerSubscription = () => {
         plan: currentPlan,
         paid: currentPlan !== "Starter",
       });
+      if (seller && seller.id) {
+        localStorage.setItem("craftora_registered_seller_id", seller.id);
+      }
       const initials = formData.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
       setSubscribers((prev) => [{
         name: formData.name, craft: formData.craftType, plan: currentPlan,
@@ -103,9 +135,22 @@ const SellerSubscription = () => {
     if (planName === currentPlan) return;
     const plan = plans.find((p) => p.name === planName);
     if (!plan || plan.price === "Free") return;
+    const sellerId = localStorage.getItem("craftora_registered_seller_id") || undefined;
     navigate("/seller/subscription/payment", {
-      state: { planName, planPrice: plan.price },
+      state: { planName, planPrice: plan.price, sellerId },
     });
+  };
+
+  const handleVerifyAdminPasscode = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passcodeInput === "admin123") {
+      setIsAdmin(true);
+      setPasscodeError(false);
+      toast({ title: "Admin Access Granted", description: "Successfully unlocked members list view." });
+    } else {
+      setPasscodeError(true);
+      toast({ title: "Incorrect Passcode", description: "Please enter the correct admin passcode.", variant: "destructive" });
+    }
   };
 
   const filteredMembers = subscribers.filter((m) => {
@@ -227,69 +272,107 @@ const SellerSubscription = () => {
       {/* Members Tab */}
       {activeTab === "members" && (
         <section className="px-4 pb-8 space-y-4">
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="craft-card p-3 text-center">
-              <Users className="w-5 h-5 text-primary mx-auto mb-1" />
-              <p className="font-display font-bold text-foreground text-lg">{subscribers.length}</p>
-              <p className="text-[10px] text-muted-foreground font-body">Total</p>
+          {!isAdmin ? (
+            <div className="craft-card p-6 text-center space-y-4 max-w-sm mx-auto">
+              <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mx-auto animate-pulse">
+                <Lock className="w-7 h-7 text-destructive" />
+              </div>
+              <h3 className="font-display font-bold text-foreground text-base">Admin Access Required</h3>
+              <p className="text-xs text-muted-foreground font-body leading-relaxed">
+                Viewing the member directory is restricted to administrator accounts only.
+              </p>
+              
+              <form onSubmit={handleVerifyAdminPasscode} className="space-y-2 pt-2">
+                <input
+                  type="password"
+                  placeholder="Enter Admin Passcode"
+                  value={passcodeInput}
+                  onChange={(e) => setPasscodeInput(e.target.value)}
+                  className={`w-full bg-muted rounded-lg px-3 py-2.5 text-sm font-body text-center text-foreground outline-none border transition-colors ${
+                    passcodeError ? "border-destructive focus:border-destructive" : "border-transparent focus:border-primary/50"
+                  }`}
+                />
+                {passcodeError && (
+                  <p className="text-[10px] text-destructive font-body font-semibold">
+                    Incorrect passcode. Try again. (Hint: admin123)
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  className="w-full gradient-warm text-primary-foreground font-body font-semibold text-xs py-2.5 rounded-lg"
+                >
+                  Verify & Unlock
+                </button>
+              </form>
             </div>
-            <div className="craft-card p-3 text-center">
-              <CreditCard className="w-5 h-5 text-secondary mx-auto mb-1" />
-              <p className="font-display font-bold text-foreground text-lg">{totalPaid}</p>
-              <p className="text-[10px] text-muted-foreground font-body">Paid</p>
-            </div>
-            <div className="craft-card p-3 text-center">
-              <Clock className="w-5 h-5 text-accent mx-auto mb-1" />
-              <p className="font-display font-bold text-foreground text-lg">{totalFree}</p>
-              <p className="text-[10px] text-muted-foreground font-body">Free</p>
-            </div>
-          </div>
-
-          {/* Filter */}
-          <div className="flex gap-2">
-            {(["all", "paid", "free"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setMemberFilter(f)}
-                className={`flex-1 py-2 rounded-lg text-xs font-body font-semibold capitalize transition-colors ${memberFilter === f ? "gradient-warm text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-              >
-                {f === "all" ? "All Members" : f === "paid" ? "Paid" : "Free Plan"}
-              </button>
-            ))}
-          </div>
-
-          {/* Member List */}
-          <div className="space-y-2">
-            {filteredMembers.map((member, i) => (
-              <div key={i} className="craft-card p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full gradient-warm flex items-center justify-center shrink-0">
-                  <span className="text-primary-foreground font-body font-bold text-xs">{member.avatar}</span>
+          ) : (
+            <>
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="craft-card p-3 text-center">
+                  <Users className="w-5 h-5 text-primary mx-auto mb-1" />
+                  <p className="font-display font-bold text-foreground text-lg">{subscribers.length}</p>
+                  <p className="text-[10px] text-muted-foreground font-body">Total</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-body font-semibold text-foreground text-sm truncate">{member.name}</h4>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-body font-semibold ${
-                      member.plan === "Premium" ? "bg-primary/15 text-primary" :
-                      member.plan === "Pro" ? "bg-secondary/15 text-secondary" :
-                      "bg-muted text-muted-foreground"
-                    }`}>{member.plan}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground font-body">{member.craft}</p>
+                <div className="craft-card p-3 text-center">
+                  <CreditCard className="w-5 h-5 text-secondary mx-auto mb-1" />
+                  <p className="font-display font-bold text-foreground text-lg">{totalPaid}</p>
+                  <p className="text-[10px] text-muted-foreground font-body">Paid</p>
                 </div>
-                <div className="text-right shrink-0">
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-body font-semibold px-2 py-1 rounded-full ${
-                    member.paid ? "bg-secondary/15 text-secondary" : "bg-muted text-muted-foreground"
-                  }`}>
-                    {member.paid ? <><CreditCard className="w-3 h-3" /> Paid</> : "Free"}
-                  </span>
-                  <p className="text-[10px] text-muted-foreground font-body mt-1">{new Date(member.joinedDate).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</p>
+                <div className="craft-card p-3 text-center">
+                  <Clock className="w-5 h-5 text-accent mx-auto mb-1" />
+                  <p className="font-display font-bold text-foreground text-lg">{totalFree}</p>
+                  <p className="text-[10px] text-muted-foreground font-body">Free</p>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Filter */}
+              <div className="flex gap-2">
+                {(["all", "paid", "free"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setMemberFilter(f)}
+                    className={`flex-1 py-2 rounded-lg text-xs font-body font-semibold capitalize transition-colors ${memberFilter === f ? "gradient-warm text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                  >
+                    {f === "all" ? "All Members" : f === "paid" ? "Paid" : "Free Plan"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Member List */}
+              <div className="space-y-2">
+                {filteredMembers.map((member, i) => (
+                  <div key={i} className="craft-card p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full gradient-warm flex items-center justify-center shrink-0">
+                      <span className="text-primary-foreground font-body font-bold text-xs">{member.avatar}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-body font-semibold text-foreground text-sm truncate">{member.name}</h4>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-body font-semibold ${
+                          member.plan === "Premium" ? "bg-primary/15 text-primary" :
+                          member.plan === "Pro" ? "bg-secondary/15 text-secondary" :
+                          "bg-muted text-muted-foreground"
+                        }`}>{member.plan}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground font-body">{member.craft}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-body font-semibold px-2 py-1 rounded-full ${
+                        member.paid ? "bg-secondary/15 text-secondary" : "bg-muted text-muted-foreground"
+                      }`}>
+                        {member.paid ? <><CreditCard className="w-3 h-3" /> Paid</> : "Free"}
+                      </span>
+                      <p className="text-[10px] text-muted-foreground font-body mt-1">{new Date(member.joinedDate).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </section>
       )}
+
     </div>
   );
 };

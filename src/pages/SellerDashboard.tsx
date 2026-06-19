@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Package, Users, Bot, Lightbulb, Crown, HeadphonesIcon, ShoppingBag, Gift, Bell, Palette,
@@ -5,11 +6,64 @@ import {
 import { useOrderStore } from "@/store/orderStore";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const SellerDashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const pendingCount = useOrderStore((s) => s.orders.filter((o) => o.status === "pending").length);
+  const [currentPlan, setCurrentPlan] = useState<string>("Starter");
+  const [sellerId, setSellerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSellerInfo = async () => {
+      const savedSellerId = localStorage.getItem("craftora_registered_seller_id");
+      setSellerId(savedSellerId);
+      if (savedSellerId) {
+        try {
+          const { data, error } = await supabase
+            .from("sellers")
+            .select("plan")
+            .eq("id", savedSellerId)
+            .single();
+          if (data) {
+            setCurrentPlan(data.plan || "Starter");
+          }
+        } catch (err) {
+          console.error("Error fetching seller info on dashboard:", err);
+        }
+      }
+    };
+
+    fetchSellerInfo();
+  }, []);
+
+  const handleFeatureClick = (path: string) => {
+    if (path === "/seller/profile") {
+      if (!sellerId) {
+        toast({
+          title: "Registration Required",
+          description: "Please register your seller profile first to customize templates.",
+          variant: "destructive",
+        });
+        navigate("/seller/subscription");
+        return;
+      }
+      if (currentPlan === "Starter") {
+        toast({
+          title: "Premium Feature Locked 🔒",
+          description: "Custom storefront templates require a premium subscription. Redirecting to plans...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          navigate("/seller/subscription");
+        }, 1500);
+        return;
+      }
+    }
+    navigate(path);
+  };
 
   const sellerFeatures = [
     { icon: Bell, title: t("seller.orderRequests"), desc: t("seller.orderRequestsDesc"), path: "/seller/notifications", gradient: "gradient-warm", showBadge: true },
@@ -42,7 +96,7 @@ const SellerDashboard = () => {
           {sellerFeatures.map((feature) => (
             <button
               key={feature.title}
-              onClick={() => navigate(feature.path)}
+              onClick={() => handleFeatureClick(feature.path)}
               className="craft-card p-4 flex flex-col items-start gap-3 text-left cursor-pointer border-0 relative"
             >
               {"showBadge" in feature && feature.showBadge && pendingCount > 0 && (

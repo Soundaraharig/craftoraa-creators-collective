@@ -282,63 +282,65 @@ const SellerProfile = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {templates.map((template) => {
-              const isLocked = getTemplateTier(template.requiredPlan) > userTier;
-              const isActive = activeTemplate === template.id;
+            {templates
+              .filter((template) => getTemplateTier(template.requiredPlan) <= userTier)
+              .map((template) => {
+                const isLocked = getTemplateTier(template.requiredPlan) > userTier;
+                const isActive = activeTemplate === template.id;
 
-              return (
-                <button
-                  key={template.id}
-                  onClick={() => handleSelectTemplate(template)}
-                  className={`craft-card p-4 text-left transition-all border relative flex flex-col justify-between h-40 ${
-                    isActive
-                      ? "ring-2 ring-primary bg-primary/5 border-primary/20"
-                      : isLocked
-                      ? "opacity-75 border-border bg-muted/40 cursor-pointer"
-                      : "border-border hover:border-primary/50 cursor-pointer"
-                  }`}
-                >
-                  {isLocked && (
-                    <span className="absolute top-3 right-3 bg-destructive/15 text-destructive p-1 rounded-full text-[10px] font-semibold flex items-center gap-1">
-                      <Lock className="w-3.5 h-3.5" />
-                    </span>
-                  )}
-                  {isActive && (
-                    <span className="absolute top-3 right-3 bg-secondary/15 text-secondary p-1 rounded-full text-[10px] font-semibold flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" />
-                    </span>
-                  )}
-
-                  <div>
-                    <h4 className="font-display font-semibold text-foreground text-sm flex items-center gap-1.5">
-                      {template.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground font-body mt-1 leading-normal">
-                      {template.desc}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-[10px] font-body font-bold text-muted-foreground uppercase">
-                      Requires: {template.requiredPlan}
-                    </span>
-                    {isLocked ? (
-                      <span className="text-[10px] font-body font-semibold text-primary underline">
-                        Upgrade
-                      </span>
-                    ) : isActive ? (
-                      <span className="text-[10px] font-body font-bold text-secondary">
-                        Active Theme
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-body font-semibold text-foreground opacity-60">
-                        Use Template
+                return (
+                  <button
+                    key={template.id}
+                    onClick={() => handleSelectTemplate(template)}
+                    className={`craft-card p-4 text-left transition-all border relative flex flex-col justify-between h-40 ${
+                      isActive
+                        ? "ring-2 ring-primary bg-primary/5 border-primary/20"
+                        : isLocked
+                        ? "opacity-75 border-border bg-muted/40 cursor-pointer"
+                        : "border-border hover:border-primary/50 cursor-pointer"
+                    }`}
+                  >
+                    {isLocked && (
+                      <span className="absolute top-3 right-3 bg-destructive/15 text-destructive p-1 rounded-full text-[10px] font-semibold flex items-center gap-1">
+                        <Lock className="w-3.5 h-3.5" />
                       </span>
                     )}
-                  </div>
-                </button>
-              );
-            })}
+                    {isActive && (
+                      <span className="absolute top-3 right-3 bg-secondary/15 text-secondary p-1 rounded-full text-[10px] font-semibold flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" />
+                      </span>
+                    )}
+
+                    <div>
+                      <h4 className="font-display font-semibold text-foreground text-sm flex items-center gap-1.5">
+                        {template.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground font-body mt-1 leading-normal">
+                        {template.desc}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-[10px] font-body font-bold text-muted-foreground uppercase">
+                        Requires: {template.requiredPlan}
+                      </span>
+                      {isLocked ? (
+                        <span className="text-[10px] font-body font-semibold text-primary underline">
+                          Upgrade
+                        </span>
+                      ) : isActive ? (
+                        <span className="text-[10px] font-body font-bold text-secondary">
+                          Active Theme
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-body font-semibold text-foreground opacity-60">
+                          Use Template
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
           </div>
         </section>
       </main>

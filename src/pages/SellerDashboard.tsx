@@ -50,17 +50,6 @@ const SellerDashboard = () => {
         navigate("/seller/subscription");
         return;
       }
-      if (currentPlan === "Starter") {
-        toast({
-          title: "Premium Feature Locked 🔒",
-          description: "Custom storefront templates require a premium subscription. Redirecting to plans...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          navigate("/seller/subscription");
-        }, 1500);
-        return;
-      }
     }
     navigate(path);
   };

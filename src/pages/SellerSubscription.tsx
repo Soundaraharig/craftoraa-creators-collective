@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Check, Crown, User, Upload, Users, CreditCard, Clock, Lock, ShieldAlert } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { registerSeller, fetchSellers } from "@/lib/orderService";
@@ -30,7 +30,11 @@ type Subscriber = { name: string; craft: string; plan: string; paid: boolean; jo
 
 const SellerSubscription = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"register" | "plans" | "members">("register");
+  const location = useLocation();
+  const state = location.state as { activeTab?: "register" | "plans" | "members" } | null;
+  const [activeTab, setActiveTab] = useState<"register" | "plans" | "members">(
+    state?.activeTab || (localStorage.getItem("craftora_registered_seller_id") ? "plans" : "register")
+  );
   const [formData, setFormData] = useState({
     name: "", craftType: "", businessName: "", contact: "", location: "", socialMedia: "",
   });

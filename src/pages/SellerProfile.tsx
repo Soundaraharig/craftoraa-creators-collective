@@ -133,7 +133,7 @@ const SellerProfile = () => {
         variant: "destructive",
       });
       setTimeout(() => {
-        navigate("/seller/subscription");
+        navigate("/seller/subscription", { state: { activeTab: "plans" } });
       }, 1500);
       return;
     }

@@ -34,6 +34,15 @@ const templates: Template[] = [
     textColor: "text-primary-foreground",
   },
   {
+    id: "rustic",
+    name: "Rustic Earth",
+    desc: "Warm terracotta and soft clay tones with organic styling, ideal for pottery, weaving, and woodcrafts.",
+    requiredPlan: "Pro",
+    bgClass: "bg-gradient-to-br from-[#FDFBF7] to-[#EADBC8] border border-[#DAC0A3] text-[#3C2A21] shadow-md dark:from-[#251A15] dark:to-[#170E0B] dark:border-[#3E2723] dark:text-[#FAF3F0]",
+    accentColor: "bg-[#8D493A]",
+    textColor: "text-[#8D493A] dark:text-[#EADBC8]",
+  },
+  {
     id: "luxury",
     name: "Royal Craft Luxury",
     desc: "Sophisticated dark mode with gold accents, classic serif typography, and premium headers.",
@@ -41,6 +50,15 @@ const templates: Template[] = [
     bgClass: "bg-[#1A1F2C] border border-amber-500/20 text-[#F1F1F1] shadow-xl",
     accentColor: "bg-amber-500",
     textColor: "text-amber-400",
+  },
+  {
+    id: "ocean",
+    name: "Ocean Breeze",
+    desc: "Cool teal gradients, fresh coastal typography, and minimalist borders, perfect for sea-glass jewelry and modern design.",
+    requiredPlan: "Luxurious Elegance",
+    bgClass: "bg-gradient-to-tr from-[#ECFEFF] via-[#E0F2FE] to-[#F0FDFA] border border-[#99F6E4] text-[#0F766E] shadow-xl dark:from-[#0F172A] dark:to-[#115E59]/30 dark:border-[#115E59]/20 dark:text-[#CCFBF1]",
+    accentColor: "bg-[#0D9488]",
+    textColor: "text-[#0D9488] dark:text-[#CCFBF1]",
   },
 ];
 
@@ -283,7 +301,6 @@ const SellerProfile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {templates
-              .filter((template) => getTemplateTier(template.requiredPlan) <= userTier)
               .map((template) => {
                 const isLocked = getTemplateTier(template.requiredPlan) > userTier;
                 const isActive = activeTemplate === template.id;
